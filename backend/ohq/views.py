@@ -20,11 +20,12 @@ from rest_framework.settings import api_settings
 from rest_framework.views import APIView
 from rest_live.mixins import RealtimeMixin
 
-from ohq.filters import QuestionSearchFilter, QueueStatisticFilter
+from ohq.filters import CourseStatisticFilter, QuestionSearchFilter, QueueStatisticFilter
 from ohq.invite import parse_and_send_invites
 from ohq.models import (
     Announcement,
     Course,
+    CourseStatistic,
     Membership,
     MembershipInvite,
     Question,
@@ -37,6 +38,7 @@ from ohq.pagination import QuestionSearchPagination
 from ohq.permissions import (
     AnnouncementPermission,
     CoursePermission,
+    CourseStatisticPermission,
     IsSuperuser,
     MassInvitePermission,
     MembershipInvitePermission,
@@ -52,6 +54,7 @@ from ohq.serializers import (
     AnnouncementSerializer,
     CourseCreateSerializer,
     CourseSerializer,
+    CourseStatisticSerializer,
     MembershipInviteSerializer,
     MembershipSerializer,
     Profile,
@@ -556,6 +559,22 @@ class MassInviteView(APIView):
             },
             status=201,
         )
+
+
+class CourseStatisticView(generics.ListAPIView):
+    """
+    Return a list of statistics - multiple data points for list statistics and heatmap statistics
+    and singleton for card statistics.
+    """
+
+    serializer_class = CourseStatisticSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = CourseStatisticFilter
+    permission_classes = [CourseStatisticPermission | IsSuperuser]
+
+    def get_queryset(self):
+        qs = CourseStatistic.objects.filter(course=self.kwargs["course_pk"])
+        return prefetch(qs, self.serializer_class)
 
 
 class QueueStatisticView(generics.ListAPIView):
