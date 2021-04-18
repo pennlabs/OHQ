@@ -459,3 +459,4 @@ class Command(BaseCommand):
         call_command("wait_time_days", "--hist")
         call_command("queue_daily_stat", "--hist")
         call_command("queue_heatmap_stat", "--hist")
+        call_command("membership_stat", "--hist")
